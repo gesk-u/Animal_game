@@ -65,13 +65,17 @@ def new_game(money, turns_time, start_airport, player, player_range, all_airport
     db.execute("")
     
     # add items
-
-        # use get_goal() function to get variable 'goals'
+    # use get_goal() function to get variable 'goals'
+    items = get_items()
 
         # make empty list of items
+    items_list = []
 
-            #iterate 'goals' from 0 to its quantity to append to the empty list
-
+    #iterate 'goals' from 0 to its quantity to append to the empty list
+    for i in items:
+        for i in range(0, items['quantity'], 1)
+        items_list.append(items['id'])
+        
     # exclude starting airport
 
 
