@@ -42,7 +42,29 @@ def main():
     """Test"""
     print(get_animals())
 
-   # game_id = new_game(money, turns_time, start_airport, player, player_range, all_airports, all_animals)
+    # game_id = new_game(money, turns_time, start_airport, player, player_range, all_airports, all_animals)
+    # GAME LOOP
+    while not game_over:
+        # get current airport info
+        airport = get_airport_info(current_airport)
+        # Current location information
+        print(f"Matti has led you to {airport['name']}")
+        print(f"He gave you {money}$ and {player_range} of fuel for the start")
+        print("There are no animals here! Keep going!")
+        #pause
+        input("Press Enter to start!")
+
+        item = check_item(game_id, current_airport)
+        animal = check_animal(game_id, current_airport)
+
+        if item:
+            print(f"Oh! you found {item["name"]} box and you will receive {item["money"]}$!")
+            money = money + int(item["money"])
+            #pause
+            input("Press Enter to continue")
+
+
+
 
 
 

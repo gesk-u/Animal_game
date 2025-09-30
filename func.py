@@ -2,29 +2,6 @@ from db_setting import *
 import random
 from geopy import distance
 
-#Flask's g
-_storage = threading.local() #"_"internal use # class container
-
-def get_g():
-    if not hasattr(_storage, "storage"):
-        _storage.storage = {}
-    return _storage.storage
-
-def get_db():
-    g = get_g()
-    if 'db' not in g:
-        conn = mysql.connector.connect(
-            user="root",
-            password="password",
-            host="127.0.0.1",
-            port=3306,
-            database="animals_game",
-            autocommit=True
-        )
-        g['conn'] = conn
-        g['db'] = conn.cursor(dictionary=True)
-    return g['db']
-
 # select 20 random airports for the game
 def get_airports():
     db = get_db()
@@ -57,23 +34,31 @@ def check_item(game_id, current_airport):
     WHERE game_id = %s
     AND location = %s;
     """, (game_id, current_airport), )
+
     result = db.fetchall()
     return result
 
 
 # create new game
-#def new_game(money, turns_time, start_airport, player, player_range, all_airports, all_animals):
+
+def new_game(money, turns_time, start_airport, player, player_range, all_airports, all_animals):
+    db = get_db()
 
     # insert gamer data to game table: id, money, turns_time, start_airport, name, range
-
+    db.execute("INSERT INTO game(screen_name, money, player_range, location, turn_time)  VALUES (%s, %s, %s, %s, %s)", (player, money, player_range, start_airport, turns_time))
+    
     # add items
-
-        # use get_goal() function to get variable 'goals'
+    # use get_goal() function to get variable 'goals'
+    items = get_items()
 
         # make empty list of items
+    items_list = []
 
-            #iterate 'goals' from 0 to its quantity to append to the empty list
-
+    #iterate 'goals' from 0 to its quantity to append to the empty list
+    for item in items:
+        for i in range(0, items['quantity'], 1):
+            items_list.append(item['id'])
+        
     # exclude starting airport
 
 
@@ -87,6 +72,9 @@ def check_item(game_id, current_airport):
 # update animals location
     # not all 8 but random number from 1 to 8
 
+
+# store saved animals
+    # query to insert rescued animals into the 'rescued_animals' table
 
 
 #set items found/opened
@@ -107,9 +95,15 @@ def get_airport_info(icao):
 
 
 # check if airport has animal
-def check_goal():
+def check_animal(game_id, current_airport):
     db = get_db()
-    db.execute("""""", (),)
+    db.execute("""
+    SELECT located.animal_id, animals.id as animals_id, animals.name
+    FROM located
+    JOIN animals ON animals.id = located.animal_id
+    WHERE game_id = %s 
+    AND location = %s
+    """, (game_id, current_airport),)
     result = db.fetchone()
     print()
     print(result)
