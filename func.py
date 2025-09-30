@@ -57,7 +57,7 @@ def get_items():
 
 
 # create new game
-def new_game(money, turns_time, start_airport, player, player_range, all_airports, all_animals):
+#def new_game(money, turns_time, start_airport, player, player_range, all_airports, all_animals):
 
     # insert gamer data to game table: id, money, turns_time, start_airport, name, range
 

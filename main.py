@@ -42,7 +42,7 @@ def main():
     """Test"""
     print(get_animals())
 
-    game_id = new_game(money, turns_time, start_airport, player, player_range, all_airports, all_animals)
+   # game_id = new_game(money, turns_time, start_airport, player, player_range, all_airports, all_animals)
 
 
 
