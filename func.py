@@ -51,7 +51,7 @@ def get_animals():
 # get items
 def get_items():
     db = get_db()
-    db.execute("")
+    db.execute("SELECT * FROM items")
     result = db.fetchall()
     return result
 
