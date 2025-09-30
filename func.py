@@ -19,7 +19,7 @@ def get_db():
             password="password",
             host="127.0.0.1",
             port=3306,
-            database="project",
+            database="animals_game",
             autocommit=True
         )
         g['conn'] = conn
@@ -44,19 +44,38 @@ def get_airports():
 # get animals
 def get_animals():
     db = get_db()
-    db.execute("SELECT name FROM anomals ORDER BY RAND() LIMIT 8")
+    db.execute("SELECT name FROM animals ORDER BY RAND() LIMIT 8")
     result = db.fetchall()
     return result
 
 # get items
+def get_items():
+    db = get_db()
+    db.execute("")
+    result = db.fetchall()
+    return result
 
 
 # create new game
+def new_game(money, turns_time, start_airport, player, player_range, all_airports, all_animals):
+
+    # insert gamer data to game table: id, money, turns_time, start_airport, name, range
+
+    # add items
+
+        # use get_goal() function to get variable 'goals'
+
+        # make empty list of items
+
+            #iterate 'goals' from 0 to its quantity to append to the empty list
+
     # exclude starting airport
 
-    # add animals, items
 
-    # insert animals items into located table
+
+    # insert game_id, animals, items, location (for each animal and item),  into located table
+
+
 
 
 
@@ -65,7 +84,7 @@ def get_animals():
 
 
 
-#set items found opened
+#set items found/opened
 
 
 

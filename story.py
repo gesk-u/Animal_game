@@ -1,7 +1,7 @@
 import textwrap
 
 story = """
-
+Story
 """
 
 # Set column width to 80 characters

@@ -29,12 +29,23 @@ def main():
 
     # all airports
     all_airports = get_airports()
+    """Test"""
+    print(get_airports())
     # start airport ident
     start_airport = all_airports[0]["ident"]
+    """Test"""
+    print(f"Start airport: {start_airport}")
     # current airport
     current_airport = start_airport
 
     all_animals = get_animals()
+    """Test"""
+    print(get_animals())
+
+    game_id = new_game(money, turns_time, start_airport, player, player_range, all_airports, all_animals)
+
+
+
 
 
 
