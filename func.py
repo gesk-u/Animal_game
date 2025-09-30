@@ -25,9 +25,16 @@ def get_animals():
     return result
 
 # get items
-def get_items():
+def check_item(game_id, current_airport):
     db = get_db()
-    db.execute("SELECT * FROM items")
+    db.execute("""
+    SELECT located.item_id, items.id as item_id, items.name, items.price
+    FROM located
+    JOIN items ON items.id = located.item_id
+    WHERE game_id = %s
+    AND location = %s;
+    """, (game_id, current_airport), )
+
     result = db.fetchall()
     return result
 
