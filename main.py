@@ -42,7 +42,14 @@ def main():
     """Test"""
     print(get_animals())
 
-   # game_id = new_game(money, turns_time, start_airport, player, player_range, all_airports, all_animals)
+    # game_id = new_game(money, turns_time, start_airport, player, player_range, all_airports, all_animals)
+    # GAME LOOP
+    while not game_over:
+        # get current airport info
+        airport = get_airport_info(current_airport)
+        # Current location information
+        print(f"Matti has led you to {airport['name']} there are no animals here! Keep going!")
+
 
 
 
