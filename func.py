@@ -57,10 +57,13 @@ def get_items():
 
 
 # create new game
-#def new_game(money, turns_time, start_airport, player, player_range, all_airports, all_animals):
+
+def new_game(money, turns_time, start_airport, player, player_range, all_airports, all_animals):
+    db = get_db()
 
     # insert gamer data to game table: id, money, turns_time, start_airport, name, range
-
+    db.execute("")
+    
     # add items
 
         # use get_goal() function to get variable 'goals'
@@ -82,6 +85,9 @@ def get_items():
 # update animals location
     # not all 8 but random number from 1 to 8
 
+
+# store saved animals
+    # query to insert rescued animals into the 'rescued_animals' table
 
 
 #set items found/opened
