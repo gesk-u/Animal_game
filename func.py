@@ -62,7 +62,7 @@ def new_game(money, turns_time, start_airport, player, player_range, all_airport
     db = get_db()
 
     # insert gamer data to game table: id, money, turns_time, start_airport, name, range
-    db.execute("")
+    db.execute("INSERT INTO game("screen_name, money, player_range, location, turn_time")  VALUES (%s, %s, %s, %s, %s)",(player, money, player_range,start_airport,turns_time)) 
     
     # add items
 
