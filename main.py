@@ -48,7 +48,22 @@ def main():
         # get current airport info
         airport = get_airport_info(current_airport)
         # Current location information
-        print(f"Matti has led you to {airport['name']} there are no animals here! Keep going!")
+        print(f"Matti has led you to {airport['name']}")
+        print(f"He gave you {money}$ and {player_range} of fuel for the start")
+        print("There are no animals here! Keep going!")
+        #pause
+        input("Press Enter to start!")
+
+        item = check_item(game_id, current_airport)
+        animal = check_animal(game_id, current_airport)
+
+        if item:
+            print(f"Oh! you found {item["name"]} box and you will receive {item["money"]}$!")
+            money = money + int(item["money"])
+            #pause
+            input("Press Enter to continue")
+
+
 
 
 
