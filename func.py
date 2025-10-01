@@ -20,53 +20,86 @@ def get_airports():
 # get animals
 def get_animals():
     db = get_db()
-    db.execute("SELECT name FROM animals ORDER BY RAND() LIMIT 8")
+    db.execute("SELECT * FROM animals ORDER BY RAND() LIMIT 8")
     result = db.fetchall()
     return result
+
+def get_item():
+    db = get_db()
+    db.execute("SELECT * FROM items")
+    result = db.fetchall()
+    return result
+
 
 # get items
 def check_item(game_id, current_airport):
     db = get_db()
     db.execute("""
-    SELECT located.item_id, items.id as item_id, items.name, items.price
-    FROM located
-    JOIN items ON items.id = located.item_id
+    SELECT items.id as item_id, items.name, items.price, located_items.opened
+    FROM located_items
+    JOIN items ON items.id = located_items.item_id
     WHERE game_id = %s
     AND location = %s;
     """, (game_id, current_airport), )
 
-    result = db.fetchall()
-    return result
+    result = db.fetchone()
+    if not result:
+        return None
+    if result['opened'] == 0:
+        return result
+    return None
 
+# check if airport has animal
+def check_animal(game_id, current_airport):
+    db = get_db()
+    db.execute("""
+    SELECT animals.id as animals_id, animals.name, animals.description, l.rescued
+    FROM located_animals l
+    JOIN animals ON animals.id = l.animal_id
+    WHERE game_id = %s 
+    AND location = %s
+    """, (game_id, current_airport), )
+    result = db.fetchone()
+    if not result:
+        return None
+    if result['rescued'] == 0:
+        return result
+    return None
 
 # create new game
 
 def new_game(money, turns_time, start_airport, player, player_range, all_airports, all_animals):
     db = get_db()
-
     # insert gamer data to game table: id, money, turns_time, start_airport, name, range
-    db.execute("INSERT INTO game(screen_name, money, player_range, location, turn_time)  VALUES (%s, %s, %s, %s, %s)", (player, money, player_range, start_airport, turns_time))
-    
-    # add items
-    # use get_goal() function to get variable 'goals'
-    items = get_items()
+    db.execute(
+        "INSERT INTO game(screen_name, money, player_range, location, turn_time)  VALUES (%s, %s, %s, %s, %s)",
+        (player, money, player_range, start_airport, turns_time)
+    )
+    g_id = db.lastrowid
 
-        # make empty list of items
+    # prepare items
+    items = get_item()
     items_list = []
-
-    #iterate 'goals' from 0 to its quantity to append to the empty list
     for item in items:
-        for i in range(0, items['quantity'], 1):
+        for i in range(item['quantity']):
             items_list.append(item['id'])
-        
+
     # exclude starting airport
-
-
+    g_ports = all_airports[1: ].copy()
+    random.shuffle(g_ports)
 
     # insert game_id, animals, items, location (for each animal and item),  into located table
+    for i, item_id in enumerate(items_list):
+        db.execute("INSERT INTO located_items(item_id, game_id, location) VALUES(%s, %s, %s)",
+                   (item_id, g_id, g_ports[i]['ident']))
 
-
-
+    random.shuffle(g_ports)
+    for i, animal in enumerate(all_animals):
+        db.execute(
+            "INSERT INTO located_animals(animal_id, game_id, location) VALUES(%s, %s, %s)",
+            (animal['id'], g_id, g_ports[i]['ident'])
+        )
+    return g_id
 
 
 # update animals location
@@ -94,22 +127,7 @@ def get_airport_info(icao):
     return result
 
 
-# check if airport has animal
-def check_animal(game_id, current_airport):
-    db = get_db()
-    db.execute("""
-    SELECT located.animal_id, animals.id as animals_id, animals.name
-    FROM located
-    JOIN animals ON animals.id = located.animal_id
-    WHERE game_id = %s 
-    AND location = %s
-    """, (game_id, current_airport),)
-    result = db.fetchone()
-    print()
-    print(result)
-    if result is None:
-        return False
-    return result
+
 
 
 # calculate distance between two airports
@@ -129,10 +147,105 @@ def airports_in_range(icao, a_ports, p_range):
     return in_range
 
 # update location ###NEED add updating the time
-#def update_location(icao, p_range, u_money, g_id):
+def update_location(icao, p_range, u_money, time, g_id):
     db = get_db()
-    db.execute( f'''UPDATE game SET location = %s, player_range = %s, money = %s WHERE id = %s''', (icao, p_range, u_money, g_id),)
+    db.execute( f'''UPDATE game SET location = %s, player_range = %s, money = %s, turn_time =%s  WHERE id = %s''', (icao, p_range, u_money, g_id, time),)
 
 
 
 #DELEVERY FUNCTIONS
+
+
+# choose the action function
+def choose_action():
+    options = ["1", "2", "3", "4", "5", "6"]
+    while True:
+        action = input("""
+What do you do?:
+(1) Check your balance;
+(2) Buy fuel;
+(3) Choose the airport to go
+(4) Check rescued animals
+(5) Check animals to rescue
+(6) Exit game
+> """).strip()
+        if action not in options:
+            print("Choose a valid option. ")
+            continue
+
+        return int(action)
+
+# use 'f_p' instead of 2
+def buy_fuel(money, player_range):
+    while True:
+        fuel = input("How much fuel do you want to buy(1$ = 2km of range). Enter amount or press Enter ")
+        if fuel.strip() == "":
+            print("No fuel purchased")
+            return money, player_range
+        try:
+            fuel = float(fuel)
+        except ValueError:
+            print("Please enter a number.")
+            continue
+        if fuel > money:
+            print("You do not have enough money.")
+            continue
+        if fuel <= 0:
+            print("You must buy a positive amount of fuel")
+            continue
+        player_range += fuel * 2
+        money -= fuel
+        print(f"You have now {money:.0f}$ and {player_range:.0f}km of range")
+        return money, player_range
+
+def get_rescued(game_id):
+    db = get_db()
+    db.execute("""
+    SELECT a.name
+    FROM animals a
+    JOIN rescued_animals r
+        ON a.id = r.animal_id
+    WHERE r.game_id = %s
+        """, (game_id,) )
+    result = db.fetchall()
+    if not result:
+        print("You did not rescue any animals yet! Hurry up!")
+    return result
+
+def return_chance():
+    a = random.randint(0,1) == 1
+    return a
+
+
+def insert_rescued_animals(animal, game_id):
+    db = get_db()
+    db.execute(
+        "INSERT INTO rescued_animals(game_id, animal_id) VALUES(%s, %s)",
+        (game_id, animal['animals_id']), )
+    db.execute(
+        "UPDATE located_animals SET rescued = 1 WHERE game_id = %s and animal_id = %s",
+        (game_id, animal['animals_id'], )
+    )
+
+def count_animals(g_id):
+    db = get_db()
+    db.execute("""
+        SELECT COUNT(l.animal_id) AS remaining
+        FROM located_animals l
+        JOIN animals ON animals.id = l.animal_id
+        WHERE l.rescued = 0 and l.game_id = %s
+        """, (g_id,)
+    )
+    result = db.fetchone()
+    return result['remaining'] if result else 0
+
+def pause():
+    input("\nPress Enter to continue > ")
+
+
+def open_item(game_id, item):
+    db = get_db()
+    db.execute(
+        "UPDATE located_items SET opened = 1 WHERE game_id = %s and item_id = %s",
+        (game_id, item['item_id'], )
+    )

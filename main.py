@@ -3,6 +3,7 @@ import story
 
 def main():
     # ask to show the story
+    # add lowercase and strip()
     storyDialog = input("Do you want to read the background story? (Y/N): ")
     if storyDialog == 'Y':
         # print wrapped string line by line
@@ -14,7 +15,6 @@ def main():
 
     # boolean for game over and print
     game_over = False
-    win = False
 
     # start money = 1000
     money = 1000
@@ -22,46 +22,123 @@ def main():
     player_range = 2000
 
     # time = 15 turns
+    one_turn = 1
     turns_time = 15
+
 
     # fuel price
     f_p = 2
 
     # all airports
     all_airports = get_airports()
-    """Test"""
-    print(get_airports())
+    all_animals = get_animals()
+
     # start airport ident
     start_airport = all_airports[0]["ident"]
-    """Test"""
-    print(f"Start airport: {start_airport}")
+    start_p_name = all_airports[0]["name"]
+
     # current airport
     current_airport = start_airport
 
-    all_animals = get_animals()
-    """Test"""
-    print(get_animals())
-
-    # game_id = new_game(money, turns_time, start_airport, player, player_range, all_airports, all_animals)
+    # Matti is bad guy change it
+    # add spaces thoughout the game
+    print(f"Matti has led you to {start_p_name}")
+    print(f"He gave you {money:.0f}$ and {player_range:.0f}km of range for the start")
+    print("There are no animals here! Keep going!")
+    # pause
+    pause()
+    game_id = new_game(money, turns_time, start_airport, player, player_range, all_airports, all_animals)
     # GAME LOOP
     while not game_over:
         # get current airport info
         airport = get_airport_info(current_airport)
-        # Current location information
-        print(f"Matti has led you to {airport['name']}")
-        print(f"He gave you {money}$ and {player_range} of fuel for the start")
-        print("There are no animals here! Keep going!")
-        #pause
-        input("Press Enter to start!")
+
 
         item = check_item(game_id, current_airport)
         animal = check_animal(game_id, current_airport)
 
+        # ask if want to look for item
         if item:
-            print(f"Oh! you found {item["name"]} box and you will receive {item["money"]}$!")
-            money = money + int(item["money"])
-            #pause
-            input("Press Enter to continue")
+            print(f"It looks like somebody left {item['name']} bag ")
+            item_question = input(f"Do you want to spend your day and try to find the owner and get a money reward? (Y/N): ")
+            if item_question == "Y":
+                open_item(game_id, item)
+                turns_time -= one_turn
+                found = return_chance()
+                if found:
+                    print(f"Oh! you found the owner of the {item['name']} bag and receive a reward of {item['price']}$!")
+                    money = money + int(item['price'])
+                    #pause
+                    pause()
+                else:
+                    print("You spent all day looking for the owner, but without success.")
+                    pause()
+            else:
+                pause()
+
+        if animal:
+            print(f"Amazing! You found animals this is {animal['description']} {animal['name']} waiting at this airport.")
+            insert_rescued_animals(animal, game_id)
+            pause()
+
+        action = choose_action()
+
+        if action == 1:
+            print(f"You have {money:.0f}$ and {player_range:.0f}km of range")
+            # pause
+            pause()
+
+        elif action == 2:
+            money, player_range = buy_fuel(money, player_range)
+            pause()
+
+        elif action == 3:
+            # show airports range
+            airports = airports_in_range(current_airport, all_airports, player_range)
+            print(f"There are {len(airports)} airports in range: ")
+
+            if len(airports) == 0:
+                while money > 0 and len(airports) == 0:
+                    print("Looks like you do not have a fuel. Lets buy some and see if the are any available airports to reach")
+                    money, player_range = buy_fuel(money, player_range)
+                    airports = airports_in_range(current_airport, all_airports, player_range)
+                if len(airports) == 0:
+                    print("No airports in range and no money left. Game over!")
+            else:
+                print("Airports: ")
+                for airport in airports:
+                    ap_distance = calculate_distance(current_airport, airport["ident"])
+                    print(f"{airport['name']}, icao: {airport['ident']}, distance: {ap_distance:.0f}km")
+
+                # ask for destination
+                dest = input("Enter destination icao: ")
+                selected_distance = calculate_distance(current_airport, dest)
+                player_range -= selected_distance
+                turns_time -= one_turn
+                update_location(dest, player_range, money, turns_time, game_id)
+                current_airport = dest
+
+                if player_range < 0:
+                    while money > 0:
+                        print("Looks like you do not have a fuel. Lets buy some")
+                        money, player_range = buy_fuel(money, player_range)
+            pause()
+
+
+        elif action == 4:
+            print("Rescued animals: ")
+            rescued_animals = get_rescued(game_id)
+            for i, animal in enumerate(rescued_animals, start=1):
+                print(f"{i}. {animal['name']}")
+            pause()
+
+        elif action == 5:
+            print(f"Animals to rescue: {count_animals(game_id)}")
+            pause()
+
+        else:
+            game_over = True
+
 
 
 
