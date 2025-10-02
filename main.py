@@ -19,10 +19,10 @@ def main():
     # start money = 1000
     money = 1000
     # start range in km = 2000
-    player_range = 200000
+    player_range = 5000
 
     # time = 15 turns
-    days = 1
+    days = 15
     one_turn = 1
     turns_time = days
 
@@ -63,7 +63,8 @@ def main():
         item = check_item(game_id, current_airport)
 
         if animal:
-            print(f"Amazing! You found animals this is {animal['description']} {animal['name']} waiting at this airport.")
+            print(f"Amazing! You found animals this is {animal['description']}\n")
+            print(f"Press Enter to rescue {animal['name']}")
             insert_rescued_animals(animal, game_id)
             pause()
 
@@ -111,7 +112,7 @@ def main():
 
             if len(airports) == 0:
                 while money > 0 and len(airports) == 0:
-                    print("Looks like you do not have a fuel. Lets buy some and see if the are any available airports to reach")
+                    print(f"Looks like you do not have a fuel. Lets buy some and see if the are any available airports to reach\nMoney: {money:.0f}$")
                     money, player_range = buy_fuel(money, player_range)
                     airports = airports_in_range(current_airport, all_airports, player_range)
                 if len(airports) == 0:
@@ -120,7 +121,7 @@ def main():
                 print("Airports: ")
                 for airport in airports:
                     ap_distance = calculate_distance(current_airport, airport["ident"])
-                    print(f"{airport['name']}, icao: {airport['ident']}, distance: {ap_distance:.0f}km")
+                    print(f"icao: ---{airport['ident']}---, {airport['name']},  distance: {ap_distance:.0f}km")
 
                 # ask for destination
                 dest = input("Enter destination icao: ")

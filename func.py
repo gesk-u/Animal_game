@@ -220,8 +220,10 @@ def get_rescued(game_id):
 
 
 def return_chance():
-    a = random.randint(0,1) == 1
-    return a
+    a = random.randint(0,10)
+    if a == 9 or a == 10 or a == 8:
+        return False
+    return True
 
 
 def insert_rescued_animals(animal, game_id):
