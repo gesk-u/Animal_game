@@ -19,11 +19,12 @@ def main():
     # start money = 1000
     money = 1000
     # start range in km = 2000
-    player_range = 2000
+    player_range = 200000
 
     # time = 15 turns
+    days = 1
     one_turn = 1
-    turns_time = 15
+    turns_time = days
 
 
     # fuel price
@@ -31,7 +32,9 @@ def main():
 
     # all airports
     all_airports = get_airports()
+    g_ports = all_airports[1:].copy()
     all_animals = get_animals()
+    items_list = prepare_items()
 
     # start airport ident
     start_airport = all_airports[0]["ident"]
@@ -47,11 +50,17 @@ def main():
     print("There are no animals here! Keep going!")
     # pause
     pause()
-    game_id = new_game(money, turns_time, start_airport, player, player_range, all_airports, all_animals)
+    game_id = new_game(money, turns_time, start_airport, player, player_range, all_animals, g_ports, items_list)
+    first_loop = True
+
+
+
     # GAME LOOP
     while not game_over:
         # get current airport info
-        airport = get_airport_info(current_airport)
+        airport = position_airport(game_id)
+
+
 
 
         item = check_item(game_id, current_airport)
@@ -81,10 +90,14 @@ def main():
             insert_rescued_animals(animal, game_id)
             pause()
 
+        if not first_loop:
+            print(f"You are at {airport['name']}")
+
+
         action = choose_action()
 
         if action == 1:
-            print(f"You have {money:.0f}$ and {player_range:.0f}km of range")
+            print(f"Money: {money:.0f}$;\nRange: {player_range:.0f}km;\nTime: {turns_time} days left")
             # pause
             pause()
 
@@ -114,7 +127,7 @@ def main():
                 dest = input("Enter destination icao: ")
                 selected_distance = calculate_distance(current_airport, dest)
                 player_range -= selected_distance
-                turns_time -= one_turn
+                turns_time = turns_time - one_turn
                 update_location(dest, player_range, money, turns_time, game_id)
                 current_airport = dest
 
@@ -138,6 +151,17 @@ def main():
 
         else:
             game_over = True
+        if first_loop:
+            first_loop = False
+
+        if turns_time == 0:
+            print(
+                "Oh no! Evil Matti moved animals to the different airports!",
+                "\n Hurry up! and find remaining animals!"
+                  )
+            relocate_all(turns_time, all_animals, game_id, g_ports)
+            turns_time = days
+
 
 
 

@@ -87,17 +87,8 @@ def new_game(money, turns_time, start_airport, player, player_range, all_animals
     )
     g_id = db.lastrowid
 
-    # prepare items
-    items = get_item()
-    items_list = []
-    for item in items:
-        for i in range(item['quantity']):
-            items_list.append(item['id'])
-
     # exclude starting airport
-    g_ports = all_airports[1: ].copy()
     random.shuffle(g_ports)
-
     # insert game_id, animals, items, location (for each animal and item),  into located table
     for i, item_id in enumerate(items_list):
         db.execute("INSERT INTO located_items(item_id, game_id, location) VALUES(%s, %s, %s)",
@@ -110,6 +101,7 @@ def new_game(money, turns_time, start_airport, player, player_range, all_animals
             (animal['id'], g_id, g_ports[i]['ident'])
         )
     return g_id
+
 
 
 # update animals location
@@ -147,6 +139,7 @@ def calculate_distance(current, target):
     return distance.distance((start['latitude_deg'], start['longitude_deg']),
                              (end['latitude_deg'], end['longitude_deg'])).km
 
+
 # get airports in range
 def airports_in_range(icao, a_ports, p_range):
     in_range = []
@@ -155,6 +148,7 @@ def airports_in_range(icao, a_ports, p_range):
         if dist <= p_range and not dist == 0:
             in_range.append(a_port)
     return in_range
+
 
 # update location ###NEED add updating the time
 def update_location(icao, p_range, u_money, time, g_id):
@@ -185,6 +179,7 @@ What do you do?:
 
         return int(action)
 
+
 # use 'f_p' instead of 2
 def buy_fuel(money, player_range):
     while True:
@@ -208,6 +203,7 @@ def buy_fuel(money, player_range):
         print(f"You have now {money:.0f}$ and {player_range:.0f}km of range")
         return money, player_range
 
+
 def get_rescued(game_id):
     db = get_db()
     db.execute("""
@@ -221,6 +217,7 @@ def get_rescued(game_id):
     if not result:
         print("You did not rescue any animals yet! Hurry up!")
     return result
+
 
 def return_chance():
     a = random.randint(0,1) == 1
@@ -236,6 +233,7 @@ def insert_rescued_animals(animal, game_id):
         "UPDATE located_animals SET rescued = 1 WHERE game_id = %s and animal_id = %s",
         (game_id, animal['animals_id'], )
     )
+
 
 def count_animals(g_id):
     db = get_db()
@@ -262,27 +260,26 @@ def open_item(game_id, item):
 
 
 
-
-def relocate(time, all_animals, game_id, g_ports, items_list):
+"""Update items, animals locations in 'located_items' and 'located_animals' """
+def relocate_all(time,all_animals, game_id, g_ports):
     db = get_db()
-    if time == 0:
-        db.execute("DELETE FROM located_animals WHERE g_id = %s", game_id)
-
-        random.shuffle(g_ports)
-        for i, animal in enumerate(all_animals):
-            db.execute(
-                "INSERT INTO located_animals(animal_id, game_id, location) VALUES(%s, %s, %s)",
-                (animal['id'], game_id, g_ports[i]['ident'])
-            )
-
-        random.shuffle(g_ports)
-        for i, item_id in enumerate(items_list):
-            db.execute("INSERT INTO located_items(item_id, game_id, location) VALUES(%s, %s, %s)",
-                       (item_id, game_id, g_ports[i]['ident']))
-
+    items_list = prepare_items()
+    db.execute("DELETE FROM located_items WHERE game_id = %s", (game_id, ))
+    random.shuffle(g_ports)
+    for i, animal in enumerate(all_animals):
+        db.execute(
+            "UPDATE located_animals SET location = %s WHERE game_id = %s and animal_id = %s",
+            (g_ports[i]['ident'], game_id, animal["id"])
+        )
+    random.shuffle(g_ports)
+    for i, item_id in enumerate(items_list):
+        db.execute("INSERT INTO located_items(item_id, game_id, location) VALUES(%s, %s, %s)",
+                   (item_id, game_id, g_ports[i]['ident']))
+    print("Items switched!!!")
 
 
 
+"""Returns the name of the current airport"""
 def position_airport(game_id):
     db = get_db()
     db.execute("SELECT a.name FROM airport a JOIN game ON a.ident = game.location WHERE game.id = %s", (game_id,))
