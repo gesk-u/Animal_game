@@ -159,7 +159,7 @@ def airports_in_range(icao, a_ports, p_range):
 # update location ###NEED add updating the time
 def update_location(icao, p_range, u_money, time, g_id):
     db = get_db()
-    db.execute( f'''UPDATE game SET location = %s, player_range = %s, money = %s, turn_time =%s  WHERE id = %s''', (icao, p_range, u_money, g_id, time),)
+    db.execute( f'''UPDATE game SET location = %s, player_range = %s, money = %s, turn_time =%s  WHERE id = %s''', (icao, p_range, u_money, time, g_id),)
 
 
 
