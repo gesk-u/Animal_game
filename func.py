@@ -66,6 +66,17 @@ def check_animal(game_id, current_airport):
         return result
     return None
 
+
+def prepare_items():
+    # prepare items
+    items = get_item()
+    items_list = []
+    for item in items:
+        for i in range(item['quantity']):
+            items_list.append(item['id'])
+    return items_list
+
+
 # create new game
 
 def new_game(money, turns_time, start_airport, player, player_range, all_airports, all_animals):
