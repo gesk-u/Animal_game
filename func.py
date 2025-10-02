@@ -259,3 +259,32 @@ def open_item(game_id, item):
         "UPDATE located_items SET opened = 1 WHERE game_id = %s and item_id = %s",
         (game_id, item['item_id'], )
     )
+
+
+
+
+def relocate(time, all_animals, game_id, g_ports, items_list):
+    db = get_db()
+    if time == 0:
+        db.execute("DELETE FROM located_animals WHERE g_id = %s", game_id)
+
+        random.shuffle(g_ports)
+        for i, animal in enumerate(all_animals):
+            db.execute(
+                "INSERT INTO located_animals(animal_id, game_id, location) VALUES(%s, %s, %s)",
+                (animal['id'], game_id, g_ports[i]['ident'])
+            )
+
+        random.shuffle(g_ports)
+        for i, item_id in enumerate(items_list):
+            db.execute("INSERT INTO located_items(item_id, game_id, location) VALUES(%s, %s, %s)",
+                       (item_id, game_id, g_ports[i]['ident']))
+
+
+
+
+def position_airport(game_id):
+    db = get_db()
+    db.execute("SELECT a.name FROM airport a JOIN game ON a.ident = game.location WHERE game.id = %s", (game_id,))
+    result = db.fetchone()
+    return result
