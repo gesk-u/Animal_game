@@ -59,12 +59,14 @@ def main():
     while not game_over:
         # get current airport info
         airport = position_airport(game_id)
-
-
-
-
-        item = check_item(game_id, current_airport)
         animal = check_animal(game_id, current_airport)
+        item = check_item(game_id, current_airport)
+
+        if animal:
+            print(f"Amazing! You found animals this is {animal['description']} {animal['name']} waiting at this airport.")
+            insert_rescued_animals(animal, game_id)
+            pause()
+
 
         # ask if want to look for item
         if item:
@@ -85,10 +87,7 @@ def main():
             else:
                 pause()
 
-        if animal:
-            print(f"Amazing! You found animals this is {animal['description']} {animal['name']} waiting at this airport.")
-            insert_rescued_animals(animal, game_id)
-            pause()
+
 
         if not first_loop:
             print(f"You are at {airport['name']}")
