@@ -155,13 +155,6 @@ def main():
         if first_loop:
             first_loop = False
 
-        if turns_time == 0:
-            print(
-                "Oh no! Evil Matti moved animals to the different airports!",
-                "\n Hurry up! and find remaining animals!"
-                  )
-            relocate_all(turns_time, all_animals, game_id, g_ports)
-            turns_time = days
 
 
 

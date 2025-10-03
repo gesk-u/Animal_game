@@ -263,21 +263,6 @@ def open_item(game_id, item):
 
 
 """Update items, animals locations in 'located_items' and 'located_animals' """
-def relocate_all(time,all_animals, game_id, g_ports):
-    db = get_db()
-    items_list = prepare_items()
-    db.execute("DELETE FROM located_items WHERE game_id = %s", (game_id, ))
-    random.shuffle(g_ports)
-    for i, animal in enumerate(all_animals):
-        db.execute(
-            "UPDATE located_animals SET location = %s WHERE game_id = %s and animal_id = %s",
-            (g_ports[i]['ident'], game_id, animal["id"])
-        )
-    random.shuffle(g_ports)
-    for i, item_id in enumerate(items_list):
-        db.execute("INSERT INTO located_items(item_id, game_id, location) VALUES(%s, %s, %s)",
-                   (item_id, game_id, g_ports[i]['ident']))
-    print("Items switched!!!")
 
 
 
