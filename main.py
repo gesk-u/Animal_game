@@ -97,7 +97,7 @@ def main():
         action = choose_action()
 
         if action == 1:
-            print(f"Money: {money:.0f}$;\nRange: {player_range:.0f}km;\nTime: {turns_time} days left")
+            print(f"Money: {money:.0f}$;\nRange: {player_range:.0f}km;\nTime: {turns_time} days left.")
             # pause
             pause()
 
@@ -117,11 +117,12 @@ def main():
                     airports = airports_in_range(current_airport, all_airports, player_range)
                 if len(airports) == 0:
                     print("No airports in range and no money left. Game over!")
+                    game_over = True
             else:
                 print("Airports: ")
-                for airport in airports:
-                    ap_distance = calculate_distance(current_airport, airport["ident"])
-                    print(f"icao: ---{airport['ident']}---, {airport['name']},  distance: {ap_distance:.0f}km")
+                sort_airports = sorted_airports(airports, current_airport)
+                for ap in sort_airports:
+                    print(f"{ap['icao']} - {ap['name']} ({ap['distance_km']} km)")
 
                 # ask for destination
                 dest = input("Enter destination icao: ")

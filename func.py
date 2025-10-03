@@ -287,3 +287,15 @@ def position_airport(game_id):
     db.execute("SELECT a.name FROM airport a JOIN game ON a.ident = game.location WHERE game.id = %s", (game_id,))
     result = db.fetchone()
     return result
+
+def sorted_airports(airports, current_airport):
+    airport_distances = []
+    for airport in airports:
+        ap_distance = calculate_distance(current_airport, airport["ident"])
+        airport_distances.append({
+            "icao": airport["ident"],
+            "name": airport["name"],
+            "distance_km": round(ap_distance)
+        })
+        airport_distances.sort(key=lambda x: x["distance_km"])
+    return airport_distances
