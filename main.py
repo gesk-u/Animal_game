@@ -4,14 +4,15 @@ import story
 def main():
     # ask to show the story
     # add lowercase and strip()
-    storyDialog = input("Do you want to read the background story? (Y/N): ")
+    player = input("type player name: ")
+    storyDialog = input("Do you want to read the background story? (Y/N): ").upper()
     if storyDialog == 'Y':
         # print wrapped string line by line
-        for line in story.getStory():
+        for line in story.getStory(player):
             print(line)
     # GAME SETTINGS
     print("When you are ready to start, ")
-    player = input("type player name: ")
+
 
     # boolean for game over and print
     game_over = False
@@ -22,8 +23,9 @@ def main():
     player_range = 5000
 
     # time = 15 turns
+    days = 2
     one_turn = 1
-    turns_time = 15
+    turns_time = days
 
 
     # fuel price
@@ -60,7 +62,8 @@ def main():
         airport = position_airport(game_id)
         animal = check_animal(game_id, current_airport)
         item = check_item(game_id, current_airport)
-
+        if not first_loop:
+            print(f"You are at {airport['name']}")
         if animal:
             print(f"Amazing! You found animals this is {animal['description']}\n")
             print(f"Press Enter to rescue {animal['name']}")
@@ -89,8 +92,7 @@ def main():
 
 
 
-        if not first_loop:
-            print(f"You are at {airport['name']}")
+
 
 
         action = choose_action()
@@ -116,7 +118,6 @@ def main():
                     airports = airports_in_range(current_airport, all_airports, player_range)
                 if len(airports) == 0:
                     prred("No airports in range and no money left. Game over!")
-                    print("No airports in range and no money left. Game over!")
                     game_over = True
             else:
                 print("Airports: ")
@@ -157,6 +158,11 @@ def main():
             game_over = True
         if first_loop:
             first_loop = False
+
+
+        if turns_time == 0:
+            update_all(game_id, all_animals, g_ports)
+            turns_time = days
 
 
 

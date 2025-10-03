@@ -280,6 +280,24 @@ def sorted_airports(airports, current_airport):
     return airport_distances
 
 
+def update_all(game_id, all_animals, g_ports):
+    db = get_db()
+    random.shuffle(g_ports)
+    for i, animal in enumerate(all_animals):
+        db.execute("""
+        UPDATE located_animals 
+        SET location = %s
+        WHERE animal_id = %s
+        AND game_id = %s;
+        """, (g_ports[i]['ident'], animal['id'], game_id, ) )
+
+    db.execute("DELETE FROM located_items WHERE game_id = %s;", (game_id, ))
+    random.shuffle(g_ports)
+    item_list = prepare_items()
+    for i, item_id in enumerate(item_list):
+        db.execute("INSERT INTO located_items(item_id, game_id, location) VALUES(%s, %s, %s)",
+                   (item_id, game_id, g_ports[i]['ident']))
+
 
 
 def prred(s): print("\033[91m {}\033[00m".format(s))
