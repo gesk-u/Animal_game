@@ -35,6 +35,8 @@ def main():
     g_ports = all_airports[1:].copy()
     all_animals = get_animals()
     items_list = prepare_items()
+    history = []
+
 
     # start airport ident
     start_airport = all_airports[0]["ident"]
@@ -45,8 +47,8 @@ def main():
 
     # Matti is bad guy change it
     # add spaces thoughout the game
-    print(f"Matti has led you to {start_p_name}")
-    print(f"He gave you {money:.0f}$ and {player_range:.0f}km of range for the start")
+    print(f"The chase with Matti has led you to {start_p_name}")
+    print(f"You have {money:.0f}$ and {player_range:.0f}km of range for the start")   
     print("There are no animals here! Keep going!")
     # pause
     pause()
@@ -115,6 +117,7 @@ def main():
                     print(f"Looks like you do not have a fuel. Lets buy some and see if the are any available airports to reach\nMoney: {money:.0f}$")
                     money, player_range = buy_fuel(money, player_range)
                     airports = airports_in_range(current_airport, all_airports, player_range)
+            
                 if len(airports) == 0:
                     print("No airports in range and no money left. Game over!")
                     game_over = True
@@ -125,7 +128,12 @@ def main():
                     print(f"{ap['icao']} - {ap['name']} ({ap['distance_km']} km)")
 
                 # ask for destination
+                
                 dest = input("Enter destination icao: ")
+                history.append(dest)
+                print("Visited: ", end="")
+                for i in range(len(history)):
+                    print(f"{history[i]}" + ", ", end="")
                 selected_distance = calculate_distance(current_airport, dest)
                 player_range -= selected_distance
                 turns_time = turns_time - one_turn
