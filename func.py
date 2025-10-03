@@ -170,7 +170,7 @@ What do you do?:
 (6) Exit game
 > """).strip()
         if action not in options:
-            print("Choose a valid option. ")
+            prred("Choose a valid option. ")
             continue
 
         return int(action)
@@ -178,7 +178,7 @@ What do you do?:
 # use 'f_p' instead of 2
 def buy_fuel(money, player_range):
     while True:
-        fuel = input("How much fuel do you want to buy(1$ = 2km of range). Enter amount or press Enter ")
+        fuel = input("How much fuel do you want to buy(1$ = 2km of range). Enter amount or press Enter ").upper()
         if fuel.strip() == "":
             print("No fuel purchased")
             return money, player_range
@@ -209,7 +209,7 @@ def get_rescued(game_id):
         """, (game_id,) )
     result = db.fetchall()
     if not result:
-        print("You did not rescue any animals yet! Hurry up!")
+        prred("You did not rescue any animals yet! Hurry up!")
     return result
 
 def return_chance():
@@ -249,3 +249,12 @@ def open_item(game_id, item):
         "UPDATE located_items SET opened = 1 WHERE game_id = %s and item_id = %s",
         (game_id, item['item_id'], )
     )
+
+
+
+def prred(s): print("\033[91m {}\033[00m".format(s))
+def prgreen(s): print("\033[92m {}\033[00m".format(s))
+def pryellow(s): print("\033[93m {}\033[00m".format(s))
+def prlightpurple(s): print("\033[94m {}\033[00m".format(s))
+def prpurple(s): print("\033[95m {}\033[00m".format(s))
+def prblack(s): print("\033[90m {}\033[00m".format(s))
