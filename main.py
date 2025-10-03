@@ -19,11 +19,12 @@ def main():
     # start money = 1000
     money = 1000
     # start range in km = 2000
-    player_range = 2000
+    player_range = 5000
 
     # time = 15 turns
+    days = 15
     one_turn = 1
-    turns_time = 15
+    turns_time = days
 
 
     # fuel price
@@ -31,7 +32,9 @@ def main():
 
     # all airports
     all_airports = get_airports()
+    g_ports = all_airports[1:].copy()
     all_animals = get_animals()
+    items_list = prepare_items()
 
     # start airport ident
     start_airport = all_airports[0]["ident"]
@@ -47,15 +50,24 @@ def main():
     print("There are no animals here! Keep going!")
     # pause
     pause()
-    game_id = new_game(money, turns_time, start_airport, player, player_range, all_airports, all_animals)
+    game_id = new_game(money, turns_time, start_airport, player, player_range, all_animals, g_ports, items_list)
+    first_loop = True
+
+
+
     # GAME LOOP
     while not game_over:
         # get current airport info
-        airport = get_airport_info(current_airport)
-
-
-        item = check_item(game_id, current_airport)
+        airport = position_airport(game_id)
         animal = check_animal(game_id, current_airport)
+        item = check_item(game_id, current_airport)
+
+        if animal:
+            print(f"Amazing! You found animals this is {animal['description']}\n")
+            print(f"Press Enter to rescue {animal['name']}")
+            insert_rescued_animals(animal, game_id)
+            pause()
+
 
         # ask if want to look for item
         if item:
@@ -76,15 +88,16 @@ def main():
             else:
                 pause()
 
-        if animal:
-            print(f"Amazing! You found animals this is {animal['description']} {animal['name']} waiting at this airport.")
-            insert_rescued_animals(animal, game_id)
-            pause()
+
+
+        if not first_loop:
+            print(f"You are at {airport['name']}")
+
 
         action = choose_action()
 
         if action == 1:
-            print(f"You have {money:.0f}$ and {player_range:.0f}km of range")
+            print(f"Money: {money:.0f}$;\nRange: {player_range:.0f}km;\nTime: {turns_time} days left.")
             # pause
             pause()
 
@@ -99,22 +112,23 @@ def main():
 
             if len(airports) == 0:
                 while money > 0 and len(airports) == 0:
-                    print("Looks like you do not have a fuel. Lets buy some and see if the are any available airports to reach")
+                    print(f"Looks like you do not have a fuel. Lets buy some and see if the are any available airports to reach\nMoney: {money:.0f}$")
                     money, player_range = buy_fuel(money, player_range)
                     airports = airports_in_range(current_airport, all_airports, player_range)
                 if len(airports) == 0:
                     print("No airports in range and no money left. Game over!")
+                    game_over = True
             else:
                 print("Airports: ")
-                for airport in airports:
-                    ap_distance = calculate_distance(current_airport, airport["ident"])
-                    print(f"{airport['name']}, icao: {airport['ident']}, distance: {ap_distance:.0f}km")
+                sort_airports = sorted_airports(airports, current_airport)
+                for ap in sort_airports:
+                    print(f"{ap['icao']} - {ap['name']} ({ap['distance_km']} km)")
 
                 # ask for destination
                 dest = input("Enter destination icao: ")
                 selected_distance = calculate_distance(current_airport, dest)
                 player_range -= selected_distance
-                turns_time -= one_turn
+                turns_time = turns_time - one_turn
                 update_location(dest, player_range, money, turns_time, game_id)
                 current_airport = dest
 
@@ -138,6 +152,10 @@ def main():
 
         else:
             game_over = True
+        if first_loop:
+            first_loop = False
+
+
 
 
 

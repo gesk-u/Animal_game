@@ -66,9 +66,19 @@ def check_animal(game_id, current_airport):
         return result
     return None
 
-# create new game
 
-def new_game(money, turns_time, start_airport, player, player_range, all_airports, all_animals):
+def prepare_items():
+    # prepare items
+    items = get_item()
+    items_list = []
+    for item in items:
+        for i in range(item['quantity']):
+            items_list.append(item['id'])
+    return items_list
+
+
+# create new game
+def new_game(money, turns_time, start_airport, player, player_range, all_animals, g_ports, items_list):
     db = get_db()
     # insert gamer data to game table: id, money, turns_time, start_airport, name, range
     db.execute(
@@ -77,17 +87,8 @@ def new_game(money, turns_time, start_airport, player, player_range, all_airport
     )
     g_id = db.lastrowid
 
-    # prepare items
-    items = get_item()
-    items_list = []
-    for item in items:
-        for i in range(item['quantity']):
-            items_list.append(item['id'])
-
     # exclude starting airport
-    g_ports = all_airports[1: ].copy()
     random.shuffle(g_ports)
-
     # insert game_id, animals, items, location (for each animal and item),  into located table
     for i, item_id in enumerate(items_list):
         db.execute("INSERT INTO located_items(item_id, game_id, location) VALUES(%s, %s, %s)",
@@ -100,6 +101,7 @@ def new_game(money, turns_time, start_airport, player, player_range, all_airport
             (animal['id'], g_id, g_ports[i]['ident'])
         )
     return g_id
+
 
 
 # update animals location
@@ -137,6 +139,7 @@ def calculate_distance(current, target):
     return distance.distance((start['latitude_deg'], start['longitude_deg']),
                              (end['latitude_deg'], end['longitude_deg'])).km
 
+
 # get airports in range
 def airports_in_range(icao, a_ports, p_range):
     in_range = []
@@ -146,10 +149,11 @@ def airports_in_range(icao, a_ports, p_range):
             in_range.append(a_port)
     return in_range
 
+
 # update location ###NEED add updating the time
 def update_location(icao, p_range, u_money, time, g_id):
     db = get_db()
-    db.execute( f'''UPDATE game SET location = %s, player_range = %s, money = %s, turn_time =%s  WHERE id = %s''', (icao, p_range, u_money, g_id, time),)
+    db.execute( f'''UPDATE game SET location = %s, player_range = %s, money = %s, turn_time =%s  WHERE id = %s''', (icao, p_range, u_money, time, g_id),)
 
 
 
@@ -175,6 +179,7 @@ What do you do?:
 
         return int(action)
 
+
 # use 'f_p' instead of 2
 def buy_fuel(money, player_range):
     while True:
@@ -198,6 +203,7 @@ def buy_fuel(money, player_range):
         print(f"You have now {money:.0f}$ and {player_range:.0f}km of range")
         return money, player_range
 
+
 def get_rescued(game_id):
     db = get_db()
     db.execute("""
@@ -212,9 +218,12 @@ def get_rescued(game_id):
         print("You did not rescue any animals yet! Hurry up!")
     return result
 
+
 def return_chance():
-    a = random.randint(0,1) == 1
-    return a
+    a = random.randint(0,10)
+    if a == 9 or a == 10 or a == 8:
+        return False
+    return True
 
 
 def insert_rescued_animals(animal, game_id):
@@ -226,6 +235,7 @@ def insert_rescued_animals(animal, game_id):
         "UPDATE located_animals SET rescued = 1 WHERE game_id = %s and animal_id = %s",
         (game_id, animal['animals_id'], )
     )
+
 
 def count_animals(g_id):
     db = get_db()
@@ -249,3 +259,28 @@ def open_item(game_id, item):
         "UPDATE located_items SET opened = 1 WHERE game_id = %s and item_id = %s",
         (game_id, item['item_id'], )
     )
+
+
+
+"""Update items, animals locations in 'located_items' and 'located_animals' """
+
+
+
+"""Returns the name of the current airport"""
+def position_airport(game_id):
+    db = get_db()
+    db.execute("SELECT a.name FROM airport a JOIN game ON a.ident = game.location WHERE game.id = %s", (game_id,))
+    result = db.fetchone()
+    return result
+
+def sorted_airports(airports, current_airport):
+    airport_distances = []
+    for airport in airports:
+        ap_distance = calculate_distance(current_airport, airport["ident"])
+        airport_distances.append({
+            "icao": airport["ident"],
+            "name": airport["name"],
+            "distance_km": round(ap_distance)
+        })
+        airport_distances.sort(key=lambda x: x["distance_km"])
+    return airport_distances
