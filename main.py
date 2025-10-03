@@ -4,14 +4,15 @@ import story
 def main():
     # ask to show the story
     # add lowercase and strip()
-    storyDialog = input("Do you want to read the background story? (Y/N): ")
+    player = input("type player name: ")
+    storyDialog = input("Do you want to read the background story? (Y/N): ").upper()
     if storyDialog == 'Y':
         # print wrapped string line by line
-        for line in story.getStory():
+        for line in story.getStory(player):
             print(line)
     # GAME SETTINGS
     print("When you are ready to start, ")
-    player = input("type player name: ")
+
 
     # boolean for game over and print
     game_over = False
@@ -22,7 +23,7 @@ def main():
     player_range = 5000
 
     # time = 15 turns
-    days = 15
+    days = 2
     one_turn = 1
     turns_time = days
 
@@ -47,9 +48,10 @@ def main():
 
     # Matti is bad guy change it
     # add spaces thoughout the game
-    print(f"The chase with Matti has led you to {start_p_name}")
-    print(f"You have {money:.0f}$ and {player_range:.0f}km of range for the start")   
-    print("There are no animals here! Keep going!")
+
+    prlightpurple(f"Matti has led you to {start_p_name}")
+    pryellow(f"He gave you {money:.0f}$ and {player_range:.0f}km of range for the start")
+    prgreen("There are no animals here! Keep going!")
     # pause
     pause()
     game_id = new_game(money, turns_time, start_airport, player, player_range, all_animals, g_ports, items_list)
@@ -63,7 +65,8 @@ def main():
         airport = position_airport(game_id)
         animal = check_animal(game_id, current_airport)
         item = check_item(game_id, current_airport)
-
+        if not first_loop:
+            print(f"You are at {airport['name']}")
         if animal:
             print(f"Amazing! You found animals this is {animal['description']}\n")
             print(f"Press Enter to rescue {animal['name']}")
@@ -74,7 +77,7 @@ def main():
         # ask if want to look for item
         if item:
             print(f"It looks like somebody left {item['name']} bag ")
-            item_question = input(f"Do you want to spend your day and try to find the owner and get a money reward? (Y/N): ")
+            item_question = input(f"Do you want to spend your day and try to find the owner and get a money reward? (Y/N): ").upper()
             if item_question == "Y":
                 open_item(game_id, item)
                 turns_time -= one_turn
@@ -92,14 +95,13 @@ def main():
 
 
 
-        if not first_loop:
-            print(f"You are at {airport['name']}")
+
 
 
         action = choose_action()
 
         if action == 1:
-            print(f"Money: {money:.0f}$;\nRange: {player_range:.0f}km;\nTime: {turns_time} days left.")
+            prpurple(f"You have {money:.0f}$ and {player_range:.0f}km of range")
             # pause
             pause()
 
@@ -119,7 +121,7 @@ def main():
                     airports = airports_in_range(current_airport, all_airports, player_range)
             
                 if len(airports) == 0:
-                    print("No airports in range and no money left. Game over!")
+                    prred("No airports in range and no money left. Game over!")
                     game_over = True
             else:
                 print("Airports: ")
@@ -128,17 +130,19 @@ def main():
                     print(f"{ap['icao']} - {ap['name']} ({ap['distance_km']} km)")
 
                 # ask for destination
-                
-                dest = input("Enter destination icao: ")
+                dest = input("Enter destination icao or press Enter to go to menu: ").upper()
                 history.append(dest)
                 print("Visited: ", end="")
                 for i in range(len(history)):
                     print(f"{history[i]}" + ", ", end="")
-                selected_distance = calculate_distance(current_airport, dest)
-                player_range -= selected_distance
-                turns_time = turns_time - one_turn
-                update_location(dest, player_range, money, turns_time, game_id)
-                current_airport = dest
+                if dest == "":
+                    pass
+                else:
+                  selected_distance = calculate_distance(current_airport, dest)
+                  player_range -= selected_distance
+                  turns_time -= one_turn
+                  update_location(dest, player_range, money, turns_time, game_id)
+                  current_airport = dest
 
                 if player_range < 0:
                     while money > 0:
@@ -148,20 +152,25 @@ def main():
 
 
         elif action == 4:
-            print("Rescued animals: ")
+            prlightpurple("Rescued animals: ")
             rescued_animals = get_rescued(game_id)
             for i, animal in enumerate(rescued_animals, start=1):
-                print(f"{i}. {animal['name']}")
+                pryellow(f"{i}. {animal['name']}")
             pause()
 
         elif action == 5:
-            print(f"Animals to rescue: {count_animals(game_id)}")
+            prblack(f"Animals to rescue: {count_animals(game_id)}")
             pause()
 
         else:
             game_over = True
         if first_loop:
             first_loop = False
+
+
+        if turns_time == 0:
+            update_all(game_id, all_animals, g_ports)
+            turns_time = days
 
 
 

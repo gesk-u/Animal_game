@@ -139,7 +139,6 @@ def calculate_distance(current, target):
     return distance.distance((start['latitude_deg'], start['longitude_deg']),
                              (end['latitude_deg'], end['longitude_deg'])).km
 
-
 # get airports in range
 def airports_in_range(icao, a_ports, p_range):
     in_range = []
@@ -148,7 +147,6 @@ def airports_in_range(icao, a_ports, p_range):
         if dist <= p_range and not dist == 0:
             in_range.append(a_port)
     return in_range
-
 
 # update location ###NEED add updating the time
 def update_location(icao, p_range, u_money, time, g_id):
@@ -174,16 +172,15 @@ What do you do?:
 (6) Exit game
 > """).strip()
         if action not in options:
-            print("Choose a valid option. ")
+            prred("Choose a valid option. ")
             continue
 
         return int(action)
 
-
 # use 'f_p' instead of 2
 def buy_fuel(money, player_range):
     while True:
-        fuel = input("How much fuel do you want to buy(1$ = 2km of range). Enter amount or press Enter ")
+        fuel = input("How much fuel do you want to buy(1$ = 2km of range). Enter amount or press Enter ").upper()
         if fuel.strip() == "":
             print("No fuel purchased")
             return money, player_range
@@ -203,7 +200,6 @@ def buy_fuel(money, player_range):
         print(f"You have now {money:.0f}$ and {player_range:.0f}km of range")
         return money, player_range
 
-
 def get_rescued(game_id):
     db = get_db()
     db.execute("""
@@ -215,9 +211,8 @@ def get_rescued(game_id):
         """, (game_id,) )
     result = db.fetchall()
     if not result:
-        print("You did not rescue any animals yet! Hurry up!")
+        prred("You did not rescue any animals yet! Hurry up!")
     return result
-
 
 def return_chance():
     a = random.randint(0,10)
@@ -235,7 +230,6 @@ def insert_rescued_animals(animal, game_id):
         "UPDATE located_animals SET rescued = 1 WHERE game_id = %s and animal_id = %s",
         (game_id, animal['animals_id'], )
     )
-
 
 def count_animals(g_id):
     db = get_db()
@@ -284,3 +278,31 @@ def sorted_airports(airports, current_airport):
         })
         airport_distances.sort(key=lambda x: x["distance_km"])
     return airport_distances
+
+
+def update_all(game_id, all_animals, g_ports):
+    db = get_db()
+    random.shuffle(g_ports)
+    for i, animal in enumerate(all_animals):
+        db.execute("""
+        UPDATE located_animals 
+        SET location = %s
+        WHERE animal_id = %s
+        AND game_id = %s;
+        """, (g_ports[i]['ident'], animal['id'], game_id, ) )
+
+    db.execute("DELETE FROM located_items WHERE game_id = %s;", (game_id, ))
+    random.shuffle(g_ports)
+    item_list = prepare_items()
+    for i, item_id in enumerate(item_list):
+        db.execute("INSERT INTO located_items(item_id, game_id, location) VALUES(%s, %s, %s)",
+                   (item_id, game_id, g_ports[i]['ident']))
+
+
+
+def prred(s): print("\033[91m {}\033[00m".format(s))
+def prgreen(s): print("\033[92m {}\033[00m".format(s))
+def pryellow(s): print("\033[93m {}\033[00m".format(s))
+def prlightpurple(s): print("\033[94m {}\033[00m".format(s))
+def prpurple(s): print("\033[95m {}\033[00m".format(s))
+def prblack(s): print("\033[90m {}\033[00m".format(s))
