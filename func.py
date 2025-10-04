@@ -122,7 +122,7 @@ def get_airports():
 def get_animals():
     """ Retrieve a random selection of animals """
     db = get_db()
-    db.execute("SELECT * FROM animals ORDER BY RAND() LIMIT 8")
+    db.execute("SELECT * FROM animals ORDER BY RAND() LIMIT 3")
     result = db.fetchall()
     return result
 

@@ -25,13 +25,14 @@ def main():
     turns_time = days       # Remaining turns counter
     f_p = 2                 # Fuel price (1$ = 2km of range)
     resc_num = 0
+    history = []
 
     # === LOAD GAME DATA FROM DATABASE ===
     all_airports = get_airports()       # List of 20 random airports
     g_ports = all_airports[1:].copy()   # Copy all except the first (used for distributing animals/items)
     all_animals = get_animals()         # Random list of animals
     items_list = prepare_items()        # Prepare item list (IDs repeated by quantity)
-    history = []                        # To track visited airports
+                         # To track visited airports
 
     # === STARTING LOCATION ===
     start_airport = all_airports[0]["ident"]
@@ -71,7 +72,7 @@ def main():
         # --- Handle item discovery ---
         if item:
             print(f"It looks like somebody left {item['name']} bag ")
-            item_question = input(f"Do you want to spend your day and try to find the owner and get a money reward? (Y/N): ").upper()
+            item_question = input(f"\nTime: {color_text(f'{turns_time} days', 'yellow')}\nDo you want to spend your day and try to find the owner and get a money reward? (Y/N): ").upper()
 
             if item_question == "Y":
                 open_item(game_id, item)
@@ -79,8 +80,8 @@ def main():
                 found = return_chance()
 
                 if found:
-                    print(f"Oh! you found the owner of the {item['name']} bag and receive a reward of {item['price']}$!")
-                    money = money + int(item['price'])
+                    print(f"Oh! you found the owner of the {item['name']} bag and receive a reward of {item['price'] * 3}$!")
+                    money = money + int(item['price']) * 3
                     #pause
                     pause()
                 else:
@@ -88,13 +89,27 @@ def main():
                     pause()
             else:
                 pause()
+
+        # Win condition: all animals rescued
+        if resc_num == len(all_animals):
+            print("You rescued all animals. Evil Matti will never steal them again")
+            game_over = True
+
+        # Time expired: reset locations and turns
+        if turns_time <= 0:
+            print("Oh, no Matti moved animals in different airports")
+            history.clear()
+            turns_time = days
+            update_all(game_id, all_animals, g_ports)
+            pause()
         # --- Main menu actions ---
+
         action = choose_action()
 
         # (1) Check balance
         if action == 1:
             print(
-                f"\nYou have {color_text(f'{money:.0f}$', 'yellow')} and {color_text(f'{player_range:.0f}km', 'yellow')} of range")
+                f"\nMoney {color_text(f'{money:.0f}$', 'yellow')};\n Range: {color_text(f'{player_range:.0f}km', 'yellow')};\nTime: {color_text(f'{turns_time} days', 'yellow')}")
             pause()
 
         # (2) Buy fuel
@@ -178,18 +193,6 @@ def main():
 
         else:
             game_over = True
-
-
-        # Win condition: all animals rescued
-        if resc_num == len(all_animals):
-            print("You rescued all animals. Evil Matti will never steal them again")
-            game_over = True
-
-        # Time expired: reset locations and turns
-        if turns_time == 0:
-            del history
-            update_all(game_id, all_animals, g_ports)
-            turns_time = days
 
         # Disable first-loop behavior after first iteration
         if first_loop:
