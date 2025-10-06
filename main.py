@@ -24,7 +24,6 @@ def main():
     one_turn = 1            # How much a single action consumes
     turns_time = days       # Remaining turns counter
     f_p = 2                 # Fuel price (1$ = 2km of range)
-    resc_num = 0
     history = []
 
     # === LOAD GAME DATA FROM DATABASE ===
@@ -69,6 +68,13 @@ def main():
             insert_rescued_animals(animal, game_id)
             pause()
 
+        resc_num = int(count_animals(game_id))
+        # Win condition: all animals rescued
+        if resc_num == 0:
+            print("You rescued all animals. Evil Matti will never steal them again")
+            break
+            print(game_over)
+
         # --- Handle item discovery ---
         if item:
             print(f"It looks like somebody left {item['name']} bag ")
@@ -90,12 +96,8 @@ def main():
             else:
                 pause()
 
-        # Win condition: all animals rescued
-        if resc_num == len(all_animals):
-            print("You rescued all animals. Evil Matti will never steal them again")
-            game_over = True
-
         # Time expired: reset locations and turns
+
         if turns_time <= 0:
             print("Oh, no Matti moved animals in different airports")
             history.clear()
@@ -131,7 +133,7 @@ def main():
                     airports = airports_in_range(current_airport, all_airports, player_range)
             
                 if len(airports) == 0:
-                    prred("No airports in range and no money left. Game over!")
+                    prred("\nNo airports in range and no money left. Game over!")
                     game_over = True
             else:
                 # Display airports sorted by distance
@@ -168,7 +170,7 @@ def main():
                         break
 
                     else:
-                        prred("\nSelect airport icao from the list ot press Enter\n")
+                        color_text("\nSelect airport icao from the list ot press Enter\n", "red")
 
 
                 # Check fuel after move
