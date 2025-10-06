@@ -153,8 +153,6 @@ def main():
                 while True:
                     # Choose destination
                     dest = input("Enter destination icao or press Enter to go to menu: ").upper()
-                    history.append(dest)
-
 
                     if dest == "":
                         pass
@@ -162,6 +160,7 @@ def main():
 
                     # If destination entered, travel there
                     elif dest in ap_icao:
+                        history.append(dest)
                         selected_distance = calculate_distance(current_airport, dest)
                         player_range -= selected_distance
                         turns_time -= one_turn
