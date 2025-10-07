@@ -2,9 +2,15 @@ import textwrap
 
 #insert user name instead of Teresa
 def getStory(name):
-    story = f"""{name} is a happy zoo keeper and the owner of Happy Animal Zoo. Matti is sent on a mission by a mysterious and villainous boss who wants to take the endangered zoo animals and sell them as pets.
-    Matti takes 8 of the endangered animals and flies them through multiple airports to take them to their new 'owners'. You 
-    are on the hunt for each and every animal before it is too late. Find the animals in time!"""
+    story = f"""{name} You are a zookeeper from Happy Animals Zoo, and your endangered animals have been taken by a villainous mob boss named Matti, who has taken the animals to the airport to sell and distribute them to new and prospective owners all in very short time. 
+     But while boarding Matti's private jet, the animals escaped their pens and have now been taken to random airports. 
+     Matti also dropped his list of private airports where his jet frequently stops to refuel. 
+     You have pursued and followed Matti to the airport and saw this happening from afar; 
+     however, after Matti's jet has taken off, you step on a piece of paper which, upon closer inspection, is revealed to be Matti's private airport list. 
+     Armed with this list and some money, you start off on your animal adventure, where you will rescue and reclaim the endangered animals from your zoo. 
+     Your task is to first select an airport where you will start. Along this journey, you will need luck, grit, and sisu to help find the animals. 
+     You might come across briefcases left behind by Matti's assistants. Avoid them at all costs if you want to find animals as fast as possible but mind your resources.
+     There are, however, good briefcases that will provide the funding you need to continue this journey. Be wise in your choices and find your animals! Good luck!"""
 
 
 
