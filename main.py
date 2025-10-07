@@ -25,6 +25,7 @@ def main():
     turns_time = days       # Remaining turns counter
     f_p = 2                 # Fuel price (1$ = 2km of range)
     history = []
+    hints = []
 
     # === LOAD GAME DATA FROM DATABASE ===
     all_airports = get_airports()       # List of 20 random airports
@@ -103,6 +104,7 @@ def main():
             history.clear()
             turns_time = days
             update_all(game_id, all_animals, g_ports)
+            clear_hint(hints)
             pause()
         # --- Main menu actions ---
 
@@ -191,6 +193,10 @@ def main():
         elif action == 5:
             print(f"\nAnimals to rescue: {color_text(count_animals(game_id), 'yellow')}")
             pause()
+
+        elif action == 6:
+            money = buy_hint(money)
+            get_hint(hints, game_id)
 
         else:
             game_over = True

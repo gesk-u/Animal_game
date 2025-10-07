@@ -5,7 +5,7 @@ from geopy import distance
 
 def choose_action():
     """ Display the main action menu and prompt the player to choose an option. """
-    options = ["1", "2", "3", "4", "5", "6"]
+    options = ["1", "2", "3", "4", "5", "6", "7"]
     while True:
         action = input("""
 What do you do?:
@@ -14,7 +14,8 @@ What do you do?:
 (3) Choose the airport to go
 (4) Check rescued animals
 (5) Check animals to rescue
-(6) Exit game\n
+(6) Buy a hint
+(7) Exit game\n
 > """).strip()
         if action not in options:
             prred("Choose a valid option. ")
@@ -323,3 +324,63 @@ def color_text(text, color):
 def pause():
     """ Pause the game until the player presses Enter. """
     input(color_text("\nPress Enter to continue\n\n> ", "green"))
+
+
+
+def get_hint(hints, game_id):
+    lists_l = []
+    db = get_db()
+    db.execute("SELECT ident FROM airport a JOIN located_animals la ON la.location = a.ident WHERE la.game_id = %s and rescued = 0", (game_id, ))
+    print()
+    results = db.fetchall()
+    for result in results:
+        lists_l.append(result['ident'])
+
+    for i, list_l in enumerate(lists_l):
+
+        key = list(list_l)
+        #print(key)
+        random.shuffle(key)
+        shuffeled = ''.join(key)
+        #print(shuffeled)
+        lists_l[i] =  shuffeled
+
+    #print(f"LIST: {lists_l}")
+
+    for list_l in lists_l:
+
+        hints.append(list_l[0:2])
+    #print(hints)
+
+    rand_hint = random.randint(0, len(hints) - 1)
+    print(f"\nThe airport you are looking for has '{hints[rand_hint][0]}' and '{hints[rand_hint][1]}'")
+    pause()
+
+
+def buy_hint(money):
+    """ Handle the process of buying hints """
+    while True:
+        hint = 450
+        user = input(f"\nMoney: {money:.0f}$\nTo buy a hint, pay 450$ or press Enter to escape\n>")
+        if user.strip() == "":
+            print("No hint purchased")
+            pause()
+            return money
+        if hint > money:
+            print("You do not have enough money.")
+            pause()
+            continue
+        if hint == 450:
+            money -= hint
+            print(f"You have now {money:.0f}$\n")
+        return money
+
+
+def clear_hint(hints):
+    hints.clear()
+
+
+
+
+
+
