@@ -204,25 +204,45 @@ def update_location(icao, p_range, u_money, time, g_id):
     db = get_db()
     db.execute( f'''UPDATE game SET location = %s, player_range = %s, money = %s, turn_time =%s  WHERE id = %s''', (icao, p_range, u_money, time, g_id),)
 
+def position_airport(game_id):
+    """ Retrieve the name and ident of the current airport """
+    db = get_db()
+    db.execute("SELECT a.name, a.ident FROM airport a JOIN game ON a.ident = game.location WHERE game.id = %s", (game_id,))
+    result = db.fetchone()
+    return result
 
-def update_all(game_id, all_animals, g_ports):
+
+def exclude_position_airport(game_id, all_airports, g_ports1):
+    current_a = position_airport(game_id)
+    #excluded = [a for a in all_airports if a['ident'] != current_a['ident']]
+    #print(f"Remaining airports: {len(excluded)}")
+    #print(f"Excluded airport: {current_a['ident']}")
+    print(current_a['ident'])
+    for airport in all_airports:
+        if airport['ident'].strip() != current_a['ident'].strip():
+            g_ports1.append(airport)
+    print(len(g_ports1))
+    print(g_ports1)
+
+
+def update_all(game_id, all_animals, all_airports):
     """ Shuffle and update the locations of all animals and items for a given game. """
     db = get_db()
-    random.shuffle(g_ports)
+    random.shuffle(all_airports)
     for i, animal in enumerate(all_animals):
         db.execute("""
         UPDATE located_animals 
         SET location = %s
         WHERE animal_id = %s
         AND game_id = %s;
-        """, (g_ports[i]['ident'], animal['id'], game_id, ) )
+        """, (all_airports[i]['ident'], animal['id'], game_id, ) )
 
     db.execute("DELETE FROM located_items WHERE game_id = %s;", (game_id, ))
-    random.shuffle(g_ports)
+    random.shuffle(all_airports)
     item_list = prepare_items()
     for i, item_id in enumerate(item_list):
         db.execute("INSERT INTO located_items(item_id, game_id, location) VALUES(%s, %s, %s)",
-                   (item_id, game_id, g_ports[i]['ident']))
+                   (item_id, game_id, all_airports[i]['ident']))
 
 
 def get_airport_info(icao):
@@ -237,12 +257,6 @@ def get_airport_info(icao):
     return result
 
 
-def position_airport(game_id):
-    """ Retrieve the name of the current airport """
-    db = get_db()
-    db.execute("SELECT a.name FROM airport a JOIN game ON a.ident = game.location WHERE game.id = %s", (game_id,))
-    result = db.fetchone()
-    return result
 
 
 def get_rescued(game_id):
@@ -330,7 +344,7 @@ def pause():
 def get_hint(hints, game_id):
     lists_l = []
     db = get_db()
-    db.execute("SELECT ident FROM airport a JOIN located_animals la ON la.location = a.ident WHERE la.game_id = %s and rescued = 0", (game_id, ))
+    db.execute("SELECT ident FROM airport a JOIN located_animals la ON la.location = a.ident WHERE la.game_id = %s and la.rescued = 0", (game_id, ))
     print()
     results = db.fetchall()
     for result in results:
@@ -365,7 +379,7 @@ def buy_hint(money):
         if user.strip() == "":
             print("No hint purchased")
             pause()
-            return money
+            return money, False
         if hint > money:
             print("You do not have enough money.")
             pause()
@@ -373,7 +387,7 @@ def buy_hint(money):
         if hint == 450:
             money -= hint
             print(f"You have now {money:.0f}$\n")
-        return money
+        return money, True
 
 
 def clear_hint(hints):

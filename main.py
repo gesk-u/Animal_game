@@ -29,6 +29,7 @@ def main():
 
     # === LOAD GAME DATA FROM DATABASE ===
     all_airports = get_airports()       # List of 20 random airports
+    g_ports1 = []
     g_ports = all_airports[1:].copy()   # Copy all except the first (used for distributing animals/items)
     all_animals = get_animals()         # Random list of animals
     items_list = prepare_items()        # Prepare item list (IDs repeated by quantity)
@@ -53,8 +54,10 @@ def main():
 
     # === MAIN GAME LOOP ===
     while not game_over:
+        exclude_position_airport(game_id, all_airports, g_ports1)
         # --- Update game state ---
-        airport = position_airport(game_id)             # Current airport info
+        airport = position_airport(game_id)
+        print(airport)# Current airport info
         animal = check_animal(game_id, current_airport) # Check for unrescued animals
         item = check_item(game_id, current_airport)     # Check for unopened items
 
@@ -100,7 +103,7 @@ def main():
         # Time expired: reset locations and turns
 
         if turns_time <= 0:
-            print("Oh, no Matti moved animals in different airports")
+            print("Oh, no the animals have changed location. FInd them before Matti finds them!")
             history.clear()
             turns_time = days
             update_all(game_id, all_animals, g_ports)
@@ -195,8 +198,9 @@ def main():
             pause()
 
         elif action == 6:
-            money = buy_hint(money)
-            get_hint(hints, game_id)
+            money, transaction = buy_hint(money)
+            if transaction:
+                get_hint(hints, game_id)
 
         else:
             game_over = True
