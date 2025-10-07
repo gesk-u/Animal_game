@@ -11,11 +11,11 @@ def choose_action():
 What do you do?:
 (1) Check your balance;
 (2) Buy fuel;
-(3) Choose the airport to go
-(4) Check rescued animals
-(5) Check animals to rescue
-(6) Buy a hint
-(7) Exit game\n
+(3) Choose the airport to go;
+(4) Check rescued animals;
+(5) Check animals to rescue;
+(6) Buy a hint;
+(7) Exit game.\n
 > """).strip()
         if action not in options:
             prred("Choose a valid option. ")
@@ -70,34 +70,52 @@ def sorted_airports(airports, current_airport):
 def buy_fuel(money, player_range, f_p):
     """ Handle the process of buying fuel """
     while True:
-        fuel = input(f"\nMoney: {money:.0f}$\nHow much fuel do you want to buy(1$ = 2km of range). Enter amount or press Enter ").upper()
+        fuel = input(f"\nMoney: {color_text(f'{money:.0f}$', 'yellow')};\nHow much fuel do you want to buy(1$ = 2km of range). Enter amount or press Enter ").upper()
         if fuel.strip() == "":
-            print("No fuel purchased")
+            print("\nNo fuel purchased")
             return money, player_range
         try:
             fuel = float(fuel)
         except ValueError:
-            print("Please enter a number.")
+            prred("\nPlease enter a number.")
             continue
         if fuel > money:
-            print("You do not have enough money.")
+            prred("\nYou do not have enough money.")
             continue
         if fuel <= 0:
-            print("You must buy a positive amount of fuel")
+            prred("\nYou must buy a positive amount of fuel")
             continue
         player_range += fuel * f_p
         money -= fuel
-        print(f"You have now {money:.0f}$ and {player_range:.0f}km of range")
+        print(f"\nYou have now {color_text(f'{money:.0f}$', 'yellow')} and {color_text(f'{player_range:.0f}km', 'yellow')} of range")
         return money, player_range
 
 
+def buy_hint(money):
+    """ Handle the process of buying hints """
+    while True:
+        hint = 800
+        user = input(f"\nMoney: {money:.0f}$\nTo buy a hint, pay 800$ or press Enter to escape\n > ").strip()
+
+        if hint > money:
+            print("You do not have enough money.")
+            pause()
+            return money, False
+        if user == "800":
+            money -= hint
+            print(f"\nYou have now {color_text(f'{money:.0f}$', 'yellow')}")
+            return money, True
+        else:
+            print("No hint purchased")
+            pause()
+            return money, False
+
 def return_chance():
-    """ Random 70% success and 30% chance of failure """
-    a = random.randint(0,10)
-    if a == 9 or a == 10 or a == 8:
+    """Return True with 80% success rate and False with 20%."""
+    a = random.randint(1, 10)  # 1–10 inclusive
+    if a <= 1:  # 2 out of 10 → 20% chance
         return False
     return True
-
 
 
 # ======================================
@@ -136,7 +154,17 @@ def get_item():
     return result
 
 
-def new_game(money, turns_time, start_airport, player, player_range, all_animals, g_ports, items_list):
+def exclude_position_airport(game_id, all_airports):
+    """ Returns a list of all airports except the one where the player """
+    g_ports = []
+    current_a = position_airport(game_id)
+    for airport in all_airports:
+        if airport['ident'].strip() != current_a['ident'].strip():
+            g_ports.append(airport)
+    return g_ports
+
+
+def new_game(money, turns_time, start_airport, player, player_range, all_animals, items_list, all_airports):
     """ Create a new game session and initialize all related data. """
     db = get_db()
     # insert gamer data to game table: id, money, turns_time, start_airport, name, range
@@ -145,7 +173,7 @@ def new_game(money, turns_time, start_airport, player, player_range, all_animals
         (player, money, player_range, start_airport, turns_time)
     )
     g_id = db.lastrowid
-
+    g_ports = exclude_position_airport(g_id, all_airports)
     # exclude starting airport
     random.shuffle(g_ports)
     # insert game_id, animals, items, location (for each animal and item),  into located table
@@ -204,6 +232,7 @@ def update_location(icao, p_range, u_money, time, g_id):
     db = get_db()
     db.execute( f'''UPDATE game SET location = %s, player_range = %s, money = %s, turn_time =%s  WHERE id = %s''', (icao, p_range, u_money, time, g_id),)
 
+
 def position_airport(game_id):
     """ Retrieve the name and ident of the current airport """
     db = get_db()
@@ -212,37 +241,59 @@ def position_airport(game_id):
     return result
 
 
-def exclude_position_airport(game_id, all_airports, g_ports1):
-    current_a = position_airport(game_id)
-    #excluded = [a for a in all_airports if a['ident'] != current_a['ident']]
-    #print(f"Remaining airports: {len(excluded)}")
-    #print(f"Excluded airport: {current_a['ident']}")
-    print(current_a['ident'])
-    for airport in all_airports:
-        if airport['ident'].strip() != current_a['ident'].strip():
-            g_ports1.append(airport)
-    print(len(g_ports1))
-    print(g_ports1)
-
-
 def update_all(game_id, all_animals, all_airports):
     """ Shuffle and update the locations of all animals and items for a given game. """
+    g_ports = exclude_position_airport(game_id, all_airports)
     db = get_db()
-    random.shuffle(all_airports)
+    random.shuffle(g_ports)
     for i, animal in enumerate(all_animals):
         db.execute("""
         UPDATE located_animals 
         SET location = %s
         WHERE animal_id = %s
         AND game_id = %s;
-        """, (all_airports[i]['ident'], animal['id'], game_id, ) )
+        """, (g_ports[i]['ident'], animal['id'], game_id, ) )
 
     db.execute("DELETE FROM located_items WHERE game_id = %s;", (game_id, ))
-    random.shuffle(all_airports)
+    random.shuffle(g_ports)
     item_list = prepare_items()
     for i, item_id in enumerate(item_list):
         db.execute("INSERT INTO located_items(item_id, game_id, location) VALUES(%s, %s, %s)",
-                   (item_id, game_id, all_airports[i]['ident']))
+                   (item_id, game_id, g_ports[i]['ident']))
+
+
+def get_hint(game_id):
+    """ Generates and displays a randomized hint about the location of unrescued animals in the game """
+    hints = []
+    lists_l = []
+
+    db = get_db()
+    db.execute("""
+            SELECT a.ident 
+            FROM airport a 
+            JOIN located_animals la ON la.location = a.ident 
+            WHERE la.game_id = %s and la.rescued = 0
+        """, (game_id, ))
+    results = db.fetchall()
+
+    for result in results:
+        lists_l.append(result['ident'])
+
+    for i, list_l in enumerate(lists_l):
+        key = list(list_l)
+        random.shuffle(key)
+        shuffeled = ''.join(key)
+        lists_l[i] =  shuffeled
+
+    for list_l in lists_l:
+        hints.append(list_l[0:2])
+    rand_hint = random.randint(0, len(hints) - 1)
+
+    print(f"\nThe airport you are looking for has '{hints[rand_hint][0]}' and '{hints[rand_hint][1]}'")
+
+    hints.clear()
+
+    pause()
 
 
 def get_airport_info(icao):
@@ -255,8 +306,6 @@ def get_airport_info(icao):
     """, (icao,))
     result = db.fetchone()
     return result
-
-
 
 
 def get_rescued(game_id):
@@ -340,58 +389,6 @@ def pause():
     input(color_text("\nPress Enter to continue\n\n> ", "green"))
 
 
-
-def get_hint(hints, game_id):
-    lists_l = []
-    db = get_db()
-    db.execute("SELECT ident FROM airport a JOIN located_animals la ON la.location = a.ident WHERE la.game_id = %s and la.rescued = 0", (game_id, ))
-    print()
-    results = db.fetchall()
-    for result in results:
-        lists_l.append(result['ident'])
-
-    for i, list_l in enumerate(lists_l):
-
-        key = list(list_l)
-        #print(key)
-        random.shuffle(key)
-        shuffeled = ''.join(key)
-        #print(shuffeled)
-        lists_l[i] =  shuffeled
-
-    #print(f"LIST: {lists_l}")
-
-    for list_l in lists_l:
-
-        hints.append(list_l[0:2])
-    #print(hints)
-
-    rand_hint = random.randint(0, len(hints) - 1)
-    print(f"\nThe airport you are looking for has '{hints[rand_hint][0]}' and '{hints[rand_hint][1]}'")
-    pause()
-
-
-def buy_hint(money):
-    """ Handle the process of buying hints """
-    while True:
-        hint = 450
-        user = input(f"\nMoney: {money:.0f}$\nTo buy a hint, pay 450$ or press Enter to escape\n>")
-        if user.strip() == "":
-            print("No hint purchased")
-            pause()
-            return money, False
-        if hint > money:
-            print("You do not have enough money.")
-            pause()
-            continue
-        if hint == 450:
-            money -= hint
-            print(f"You have now {money:.0f}$\n")
-        return money, True
-
-
-def clear_hint(hints):
-    hints.clear()
 
 
 

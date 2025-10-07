@@ -25,12 +25,9 @@ def main():
     turns_time = days       # Remaining turns counter
     f_p = 2                 # Fuel price (1$ = 2km of range)
     history = []
-    hints = []
 
     # === LOAD GAME DATA FROM DATABASE ===
     all_airports = get_airports()       # List of 20 random airports
-    g_ports1 = []
-    g_ports = all_airports[1:].copy()   # Copy all except the first (used for distributing animals/items)
     all_animals = get_animals()         # Random list of animals
     items_list = prepare_items()        # Prepare item list (IDs repeated by quantity)
                          # To track visited airports
@@ -47,23 +44,20 @@ def main():
     pause()
 
     # Create new game in the database
-    game_id = new_game(money, turns_time, start_airport, player, player_range, all_animals, g_ports, items_list)
+    game_id = new_game(money, turns_time, start_airport, player, player_range, all_animals, items_list, all_airports)
     first_loop = True   # Used to suppress repeated location messages at start
 
 
 
     # === MAIN GAME LOOP ===
     while not game_over:
-        exclude_position_airport(game_id, all_airports, g_ports1)
+        exclude_position_airport(game_id, all_airports)
         # --- Update game state ---
-        airport = position_airport(game_id)
-        print(airport)# Current airport info
+        airport = position_airport(game_id)             # Current airport info
         animal = check_animal(game_id, current_airport) # Check for unrescued animals
         item = check_item(game_id, current_airport)     # Check for unopened items
 
-        # Display current airport (skip first loop to avoid repeating)
-        if not first_loop:
-            print(f"You are at {airport['name']}")
+
 
         # --- Handle animal discovery ---
         if animal:
@@ -81,8 +75,8 @@ def main():
 
         # --- Handle item discovery ---
         if item:
-            print(f"It looks like somebody left {item['name']} bag ")
-            item_question = input(f"\nTime: {color_text(f'{turns_time} days', 'yellow')}\nDo you want to spend your day and try to find the owner and get a money reward? (Y/N): ").upper()
+            print(f"It looks like somebody left {color_text(item['name'], 'purple')} briefcase ")
+            item_question = input(f"\nTime: {color_text(f'{turns_time + 1} days', 'yellow')}\nDo you want to spend your day and try to find the owner and get a money reward? (Y/N): ").upper()
 
             if item_question == "Y":
                 open_item(game_id, item)
@@ -101,22 +95,25 @@ def main():
                 pause()
 
         # Time expired: reset locations and turns
-
         if turns_time <= 0:
             print("Oh, no the animals have changed location. FInd them before Matti finds them!")
             history.clear()
             turns_time = days
-            update_all(game_id, all_animals, g_ports)
-            clear_hint(hints)
+            update_all(game_id, all_animals, all_airports)
             pause()
-        # --- Main menu actions ---
 
+
+        # Display current airport (skip first loop to avoid repeating)
+        if not first_loop:
+            print(f"You are at {airport['name']}")
+
+        # --- Main menu actions ---
         action = choose_action()
 
         # (1) Check balance
         if action == 1:
             print(
-                f"\nMoney {color_text(f'{money:.0f}$', 'yellow')};\n Range: {color_text(f'{player_range:.0f}km', 'yellow')};\nTime: {color_text(f'{turns_time} days', 'yellow')}")
+                f"\nMoney {color_text(f'{money:.0f}$', 'yellow')};\nRange: {color_text(f'{player_range:.0f}km', 'yellow')};\nTime: {color_text(f'{turns_time} days', 'yellow')}.")
             pause()
 
         # (2) Buy fuel
@@ -150,6 +147,7 @@ def main():
                 for ap in sort_airports:
                     print(f"{ap['icao']} - {ap['name']} ({color_text(str(ap['distance_km']), 'yellow')}km)")
 
+                print(f"\nTime: {turns_time}")
                 print("\nVisited: ", end="")
                 for i in range(len(history)):
                     end_char = ", " if i < len(history) - 1 else ""
@@ -200,7 +198,7 @@ def main():
         elif action == 6:
             money, transaction = buy_hint(money)
             if transaction:
-                get_hint(hints, game_id)
+                get_hint(game_id)
 
         else:
             game_over = True
