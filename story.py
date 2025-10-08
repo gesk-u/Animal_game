@@ -2,7 +2,7 @@ import textwrap
 
 #insert user name instead of Teresa
 def getStory(name):
-    story = f"""{name} You are a zookeeper from Happy Animals Zoo, and your endangered animals have been taken by a villainous mob boss named Matti, who has taken the animals to the airport to sell and distribute them to new and prospective owners all in very short time. 
+    story = f"""{name} is a zookeeper from Happy Animals Zoo, and your endangered animals have been taken by a villainous mob boss named Matti, who has taken the animals to the airport to sell and distribute them to new and prospective owners all in very short time. 
      But while boarding Matti's private jet, the animals escaped their pens and have now been taken to random airports. 
      Matti also dropped his list of private airports where his jet frequently stops to refuel. 
      You have pursued and followed Matti to the airport and saw this happening from afar; 
